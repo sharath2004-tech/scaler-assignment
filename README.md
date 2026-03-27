@@ -4,6 +4,22 @@ A full-stack Trello-like project management application built with React.js + Vi
 
 ---
 
+## Live Deployment
+
+- **Frontend (Vercel):** https://scaler-assignment-gamma.vercel.app/
+- **Backend API (Render):** https://scaler-assignment-x4b7.onrender.com
+- **API example endpoint:** https://scaler-assignment-x4b7.onrender.com/api/boards
+
+> Note: The backend root (`/`) may return 404. Use `/api/*` routes for API calls.
+
+For deployed frontend, set:
+
+```bash
+VITE_API_URL=https://scaler-assignment-x4b7.onrender.com/api
+```
+
+---
+
 ## Tech Stack
 
 | Layer    | Technology                        |
