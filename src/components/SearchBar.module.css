@@ -5,6 +5,41 @@
   gap: 8px;
 }
 
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0 10px;
+  min-width: 260px;
+  height: 34px;
+}
+
+.searchWrap:focus-within {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.searchIcon {
+  color: #B6C2CF;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  width: 100%;
+  font-size: 13px;
+}
+
+.searchInput::placeholder {
+  color: #B6C2CF;
+}
+
 .filterBtn {
   display: flex;
   align-items: center;

@@ -257,7 +257,7 @@ router.get('/search/query', async (req, res) => {
       FROM cards c
       JOIN lists l ON c.list_id = l.id
       LEFT JOIN card_labels cl ON c.id = cl.card_id
-      LEFT JOIN card_members cm ON c.id = cm.member_id
+      LEFT JOIN card_members cm ON c.id = cm.card_id
       WHERE c.archived = FALSE
     `;
     const params = [];

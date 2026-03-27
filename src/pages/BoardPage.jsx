@@ -37,6 +37,7 @@ export default function BoardPage() {
   const [activeCard, setActiveCard] = useState(null);
   const [activeList, setActiveList] = useState(null);
   const [selectedCardId, setSelectedCardId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [filterLabel, setFilterLabel] = useState(null);
   const [filterMember, setFilterMember] = useState(null);
   const [filterDue, setFilterDue] = useState(null);
@@ -186,6 +187,9 @@ export default function BoardPage() {
   const filteredLists = lists.map((list) => ({
     ...list,
     cards: (list.cards || []).filter((card) => {
+      const title = (card.title || '').toLowerCase();
+      const q = searchQuery.trim().toLowerCase();
+      if (q && !title.includes(q)) return false;
       if (filterLabel && !card.label_ids?.includes(filterLabel)) return false;
       if (filterMember && !card.member_ids?.includes(filterMember)) return false;
       if (filterDue) {
@@ -220,9 +224,11 @@ export default function BoardPage() {
         <SearchBar
           allLabels={allLabels}
           allMembers={allMembers}
+          searchQuery={searchQuery}
           filterLabel={filterLabel}
           filterMember={filterMember}
           filterDue={filterDue}
+          onSearchQuery={setSearchQuery}
           onFilterLabel={setFilterLabel}
           onFilterMember={setFilterMember}
           onFilterDue={setFilterDue}
