@@ -53,6 +53,44 @@ async function ensureAttachmentsTable() {
   attachmentsTableReady = true;
 }
 
+let coverColumnReady = false;
+async function ensureCoverImageColumn() {
+  if (coverColumnReady) return;
+  try {
+    await db.query('ALTER TABLE cards MODIFY cover_image TEXT NULL');
+  } catch (_err) {
+    // Ignore migration errors here to avoid breaking unrelated card operations.
+  }
+  coverColumnReady = true;
+}
+
+// GET archived cards by board
+router.get('/archived/:boardId', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT c.*, l.title AS list_title,
+              GROUP_CONCAT(DISTINCT cl.label_id) AS label_ids,
+              GROUP_CONCAT(DISTINCT cm.member_id) AS member_ids
+       FROM cards c
+       JOIN lists l ON c.list_id = l.id
+       LEFT JOIN card_labels cl ON c.id = cl.card_id
+       LEFT JOIN card_members cm ON c.id = cm.card_id
+       WHERE l.board_id = ? AND c.archived = TRUE
+       GROUP BY c.id
+       ORDER BY c.updated_at DESC, c.created_at DESC`,
+      [req.params.boardId]
+    );
+
+    res.json(rows.map((c) => ({
+      ...c,
+      label_ids: c.label_ids ? c.label_ids.split(',') : [],
+      member_ids: c.member_ids ? c.member_ids.split(',') : [],
+    })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET full card details
 router.get('/:id', async (req, res) => {
   try {
@@ -121,6 +159,7 @@ router.post('/', async (req, res) => {
 // PATCH update card
 router.patch('/:id', async (req, res) => {
   try {
+    await ensureCoverImageColumn();
     const allowed = ['title', 'description', 'due_date', 'cover_color', 'cover_image', 'archived', 'list_id'];
     const fields = [];
     const values = [];

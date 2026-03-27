@@ -23,6 +23,7 @@ export const reorderLists = (data) => API.post('/lists/reorder', data);
 
 // Cards
 export const getCard = (id) => API.get(`/cards/${id}`);
+export const getArchivedCards = (boardId) => API.get(`/cards/archived/${boardId}`);
 export const createCard = (data) => API.post('/cards', data);
 export const updateCard = (id, data) => API.patch(`/cards/${id}`, data);
 export const deleteCard = (id) => API.delete(`/cards/${id}`);

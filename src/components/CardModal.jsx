@@ -17,7 +17,6 @@ import {
     updateCard,
     updateChecklistItem,
     uploadAttachment,
-    uploadCoverImage,
 } from '../api';
 import styles from './CardModal.module.css';
 
@@ -51,6 +50,15 @@ function resolveMediaUrl(url) {
   if (/^https?:\/\//i.test(url)) return url;
   if (url.startsWith('/')) return `${API_ORIGIN}${url}`;
   return url;
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
 }
 
 export default function CardModal({ cardId, allLabels, allMembers, onClose, onUpdate, onDelete }) {
@@ -158,42 +166,23 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Keep DB payloads reasonable for data-URL storage
+    if (file.size > 350 * 1024) {
+      alert('Please select an image smaller than 350KB for cover upload.');
+      e.target.value = '';
+      return;
+    }
+
     setUploadingCover(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Preferred path: dedicated cover-upload endpoint
-      const { data } = await uploadCoverImage(cardId, formData);
+      const dataUrl = await fileToDataUrl(file);
+      const { data } = await updateCard(cardId, {
+        cover_image: dataUrl,
+        cover_color: null,
+      });
       setCard((prev) => ({ ...prev, cover_image: data.cover_image, cover_color: data.cover_color }));
-      setCoverImageInput(data.cover_image || '');
+      setCoverImageInput('');
       onUpdate({ ...card, cover_image: data.cover_image, cover_color: data.cover_color });
-    } catch (err) {
-      // Backward-compatible fallback if backend isn't redeployed with /cover/upload yet
-      if (err?.response?.status === 404) {
-        const fallbackData = new FormData();
-        fallbackData.append('file', file);
-        const { data: attachment } = await uploadAttachment(cardId, fallbackData);
-        const { data: updated } = await updateCard(cardId, {
-          cover_image: attachment.file_url,
-          cover_color: null,
-        });
-
-        setCard((prev) => ({
-          ...prev,
-          cover_image: updated.cover_image,
-          cover_color: updated.cover_color,
-          attachments: [attachment, ...(prev.attachments || [])],
-        }));
-        setCoverImageInput(updated.cover_image || '');
-        onUpdate({
-          ...card,
-          cover_image: updated.cover_image,
-          cover_color: updated.cover_color,
-        });
-      } else {
-        throw err;
-      }
     } finally {
       setUploadingCover(false);
       e.target.value = '';

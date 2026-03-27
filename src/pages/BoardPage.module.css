@@ -153,6 +153,96 @@
   padding: 4px 6px;
 }
 
+.archiveModal {
+  width: min(680px, 92vw);
+  max-height: 80vh;
+  overflow: auto;
+  background: #282E33;
+  border-radius: 12px;
+  border: 1px solid #3D4B5C;
+  padding: 14px;
+}
+
+.archiveHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.archiveHeader h3 {
+  color: #B6C2CF;
+  font-size: 16px;
+  margin: 0;
+}
+
+.archiveClose {
+  color: #B6C2CF;
+  font-size: 22px;
+  line-height: 1;
+  padding: 0 6px;
+  border-radius: 4px;
+}
+
+.archiveClose:hover {
+  background: #3D4B5C;
+  color: #fff;
+}
+
+.archiveEmpty {
+  color: #8C9BAB;
+  font-size: 14px;
+  padding: 12px 4px;
+}
+
+.archiveList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.archiveItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #1D2125;
+  border: 1px solid #3D4B5C;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.archiveInfo {
+  min-width: 0;
+}
+
+.archiveTitle {
+  color: #B6C2CF;
+  font-size: 14px;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.archiveMeta {
+  color: #8C9BAB;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.archiveRestore {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #0052CC;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.archiveRestore:hover {
+  background: #0065FF;
+}
+
 @media (max-width: 1024px) {
   .listsContainer {
     padding: 8px 12px 12px;

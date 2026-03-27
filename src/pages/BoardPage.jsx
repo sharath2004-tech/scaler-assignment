@@ -3,10 +3,11 @@ import {
     DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { format } from 'date-fns';
 import { isValid } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createList, getBoard, getLabels, getMembers, reorderCards, reorderLists, updateBoard } from '../api';
+import { createList, getArchivedCards, getBoard, getLabels, getMembers, reorderCards, reorderLists, updateBoard, updateCard } from '../api';
 import BoardList from '../components/BoardList';
 import CardItem from '../components/CardItem';
 import CardModal from '../components/CardModal';
@@ -44,6 +45,9 @@ export default function BoardPage() {
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showBgPicker, setShowBgPicker] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
+  const [archivedCards, setArchivedCards] = useState([]);
+  const [archivedLoading, setArchivedLoading] = useState(false);
   const [filterLabel, setFilterLabel] = useState(null);
   const [filterMember, setFilterMember] = useState(null);
   const [filterDue, setFilterDue] = useState(null);
@@ -196,6 +200,23 @@ export default function BoardPage() {
     setShowBgPicker(false);
   };
 
+  const openArchived = async () => {
+    setShowArchived(true);
+    setArchivedLoading(true);
+    try {
+      const { data } = await getArchivedCards(boardId);
+      setArchivedCards(data || []);
+    } finally {
+      setArchivedLoading(false);
+    }
+  };
+
+  const restoreArchivedCard = async (cardId) => {
+    await updateCard(cardId, { archived: false });
+    setArchivedCards((prev) => prev.filter((c) => c.id !== cardId));
+    await loadBoard();
+  };
+
   const filteredLists = lists.map((list) => ({
     ...list,
     cards: (list.cards || []).filter((card) => {
@@ -262,6 +283,7 @@ export default function BoardPage() {
             </div>
           )}
         </div>
+        <button className={styles.bgBtn} onClick={openArchived}>Archived</button>
       </div>
 
       <DndContext
@@ -308,6 +330,39 @@ export default function BoardPage() {
           onUpdate={handleCardUpdate}
           onDelete={handleCardDelete}
         />
+      )}
+
+      {showArchived && (
+        <div className="overlay" onClick={() => setShowArchived(false)}>
+          <div className={styles.archiveModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.archiveHeader}>
+              <h3>Archived cards</h3>
+              <button className={styles.archiveClose} onClick={() => setShowArchived(false)}>×</button>
+            </div>
+
+            {archivedLoading ? (
+              <div className={styles.archiveEmpty}>Loading archived cards...</div>
+            ) : archivedCards.length === 0 ? (
+              <div className={styles.archiveEmpty}>No archived cards in this board.</div>
+            ) : (
+              <div className={styles.archiveList}>
+                {archivedCards.map((card) => (
+                  <div key={card.id} className={styles.archiveItem}>
+                    <div className={styles.archiveInfo}>
+                      <div className={styles.archiveTitle}>{card.title}</div>
+                      <div className={styles.archiveMeta}>
+                        List: {card.list_title || 'Unknown'} • Updated: {card.updated_at ? format(new Date(card.updated_at), 'MMM d, yyyy') : '-'}
+                      </div>
+                    </div>
+                    <button className={styles.archiveRestore} onClick={() => restoreArchivedCard(card.id)}>
+                      Restore
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
