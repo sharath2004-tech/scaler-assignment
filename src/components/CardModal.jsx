@@ -6,17 +6,17 @@ import {
     addComment,
     addLabelToCard,
     addMemberToCard,
+    API_ORIGIN,
+    deleteAttachment,
     deleteCard,
     deleteChecklist,
     deleteChecklistItem,
-    deleteAttachment,
     getCard,
     removeLabelFromCard,
     removeMemberFromCard,
-    uploadAttachment,
     updateCard,
     updateChecklistItem,
-    API_ORIGIN,
+    uploadAttachment,
 } from '../api';
 import styles from './CardModal.module.css';
 
