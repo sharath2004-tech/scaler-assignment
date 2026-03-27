@@ -14,12 +14,29 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
   : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'];
 
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+
+  // Explicit allow list from env
+  if (allowedOrigins.some((o) => origin === o || origin.startsWith(o))) {
+    return true;
+  }
+
+  // Allow Vercel deployments by default (production + preview)
+  if (/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(origin)) {
+    return true;
+  }
+
+  return false;
+};
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.some((o) => origin.startsWith(o))) {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS blocked: ${origin}`));
+      // Block origin without turning request into 500 error
+      callback(null, false);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
