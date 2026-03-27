@@ -161,12 +161,31 @@ export default function BoardPage() {
   }
 
   const handleCardUpdate = (updatedCard) => {
-    setLists((prev) =>
-      prev.map((l) => ({
-        ...l,
-        cards: l.cards?.map((c) => (c.id === updatedCard.id ? { ...c, ...updatedCard } : c)) || [],
-      }))
-    );
+    setLists((prev) => {
+      const currentList = prev.find((l) => l.cards?.some((c) => c.id === updatedCard.id));
+      const existingCard = currentList?.cards.find((c) => c.id === updatedCard.id);
+      if (!existingCard) return prev;
+
+      const nextListId = updatedCard.list_id || existingCard.list_id;
+
+      // Same-list update: keep position stable
+      if (nextListId === existingCard.list_id) {
+        return prev.map((l) => ({
+          ...l,
+          cards: l.cards?.map((c) => (c.id === updatedCard.id ? { ...c, ...updatedCard, list_id: nextListId } : c)) || [],
+        }));
+      }
+
+      // Cross-list move: remove from source and append into destination
+      const movedCard = { ...existingCard, ...updatedCard, list_id: nextListId };
+      return prev.map((l) => {
+        const withoutCard = (l.cards || []).filter((c) => c.id !== updatedCard.id);
+        if (l.id === nextListId) {
+          return { ...l, cards: [...withoutCard, movedCard] };
+        }
+        return { ...l, cards: withoutCard };
+      });
+    });
   };
 
   const handleCardDelete = (cardId) => {
@@ -329,9 +348,11 @@ export default function BoardPage() {
           cardId={selectedCardId}
           allLabels={allLabels}
           allMembers={allMembers}
+          allLists={lists}
           onClose={() => setSelectedCardId(null)}
           onUpdate={handleCardUpdate}
           onDelete={handleCardDelete}
+          onCreate={handleCardCreate}
         />
       )}
 

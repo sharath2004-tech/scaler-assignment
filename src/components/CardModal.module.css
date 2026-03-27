@@ -497,6 +497,22 @@
   background: rgba(255, 86, 48, 0.3);
 }
 
+.moveRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.moveSelect {
+  width: 100%;
+  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #1D2125;
+  color: #B6C2CF;
+  border: 1px solid #3D4B5C;
+}
+
 .membersList {
   display: flex;
   flex-wrap: wrap;

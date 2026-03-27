@@ -4,6 +4,7 @@ import {
     addChecklist,
     addChecklistItem,
     addComment,
+  createCard,
     addLabelToCard,
     addMemberToCard,
     API_ORIGIN,
@@ -61,7 +62,7 @@ function fileToDataUrl(file) {
   });
 }
 
-export default function CardModal({ cardId, allLabels, allMembers, onClose, onUpdate, onDelete }) {
+export default function CardModal({ cardId, allLabels, allMembers, allLists = [], onClose, onUpdate, onDelete, onCreate }) {
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -78,6 +79,8 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
   const [coverImageInput, setCoverImageInput] = useState('');
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [movingListId, setMovingListId] = useState('');
+  const [copyingCard, setCopyingCard] = useState(false);
   const overlayRef = useRef(null);
 
   // Default logged-in user
@@ -90,9 +93,12 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
         setTitleVal(r.data.title);
         setDescVal(r.data.description || '');
         setCoverImageInput(r.data.cover_image || '');
+          setMovingListId(r.data.list_id || '');
       })
       .finally(() => setLoading(false));
   }, [cardId]);
+
+        const currentListTitle = allLists.find((l) => l.id === card?.list_id)?.title || card?.list_id;
 
   const saveTitle = async () => {
     setEditingTitle(false);
@@ -287,6 +293,51 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
     onDelete(cardId);
   };
 
+  const handleMoveCard = async () => {
+    if (!movingListId || movingListId === card.list_id) return;
+    const { data } = await updateCard(cardId, { list_id: movingListId });
+    setCard((prev) => ({ ...prev, list_id: data.list_id }));
+    onUpdate({ ...card, list_id: data.list_id });
+  };
+
+  const handleCopyCard = async () => {
+    if (!card || copyingCard) return;
+    setCopyingCard(true);
+    try {
+      const { data: created } = await createCard({
+        list_id: card.list_id,
+        title: `Copy of ${card.title}`,
+      });
+
+      await updateCard(created.id, {
+        description: card.description || '',
+        due_date: card.due_date || null,
+        cover_color: card.cover_color || null,
+        cover_image: card.cover_image || null,
+      });
+
+      await Promise.all((card.labels || []).map((label) => addLabelToCard(created.id, label.id).catch(() => null)));
+      await Promise.all((card.members || []).map((member) => addMemberToCard(created.id, member.id).catch(() => null)));
+
+      for (const checklist of (card.checklists || [])) {
+        const { data: newChecklist } = await addChecklist(created.id, { title: checklist.title });
+        for (const item of (checklist.items || [])) {
+          const { data: newItem } = await addChecklistItem(created.id, newChecklist.id, { text: item.text });
+          if (item.completed) {
+            await updateChecklistItem(created.id, newChecklist.id, newItem.id, { completed: true });
+          }
+        }
+      }
+
+      if (onCreate) {
+        const { data: fullCard } = await getCard(created.id);
+        onCreate(fullCard);
+      }
+    } finally {
+      setCopyingCard(false);
+    }
+  };
+
   if (loading) return (
     <div className="overlay" onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -351,7 +402,7 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
             </div>
 
             {/* In list */}
-            <p className={styles.inList}>in list <strong>{card.list_id}</strong></p>
+            <p className={styles.inList}>in list <strong>{currentListTitle}</strong></p>
 
             {/* Description */}
             <div className={styles.section}>
@@ -643,6 +694,27 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
             {/* Actions */}
             <div className={styles.sideSection}>
               <div className={styles.sideSectionTitle}>Actions</div>
+              <div className={styles.moveRow}>
+                <select
+                  className={styles.moveSelect}
+                  value={movingListId}
+                  onChange={(e) => setMovingListId(e.target.value)}
+                >
+                  {allLists.map((list) => (
+                    <option key={list.id} value={list.id}>{list.title}</option>
+                  ))}
+                </select>
+                <button
+                  className={styles.sideBtn}
+                  onClick={handleMoveCard}
+                  disabled={!movingListId || movingListId === card.list_id}
+                >
+                  Move to list
+                </button>
+              </div>
+              <button className={styles.sideBtn} onClick={handleCopyCard} disabled={copyingCard}>
+                {copyingCard ? 'Copying...' : 'Copy card'}
+              </button>
               <button className={styles.sideBtn} onClick={handleArchive}>Archive</button>
               <button className={`${styles.sideBtn} ${styles.danger}`} onClick={handleDelete}>Delete card</button>
             </div>
