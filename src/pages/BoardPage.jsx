@@ -3,8 +3,7 @@ import {
     DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { format } from 'date-fns';
-import { isValid } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createList, getArchivedCards, getBoard, getLabels, getMembers, reorderCards, reorderLists, updateBoard, updateCard } from '../api';
