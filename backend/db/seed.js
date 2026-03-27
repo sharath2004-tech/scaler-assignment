@@ -1,16 +1,41 @@
-require('dotenv').config({ override: true });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: true });
 const mysql = require('mysql2/promise');
 const { v4: uuidv4 } = require('uuid');
 
-async function seed() {
-  const conn = await mysql.createConnection({
+const connectionUri =
+  process.env.MYSQL_ADDON_URI || process.env.DATABASE_URL || null;
+
+function getConnectionConfig() {
+  if (connectionUri) {
+    const u = new URL(connectionUri);
+    return {
+      host: u.hostname,
+      port: Number(u.port) || 3306,
+      user: decodeURIComponent(u.username),
+      password: decodeURIComponent(u.password),
+      database: u.pathname.replace(/^\//, ''),
+      ssl: { rejectUnauthorized: false },
+      connectTimeout: 30000,
+      enableKeepAlive: true,
+      multipleStatements: true,
+    };
+  }
+
+  return {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'trello_clone',
+    connectTimeout: 30000,
+    enableKeepAlive: true,
     multipleStatements: true,
-  });
+  };
+}
+
+async function seed() {
+  const conn = await mysql.createConnection(getConnectionConfig());
 
   console.log('Connected. Seeding...');
 
