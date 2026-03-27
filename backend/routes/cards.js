@@ -57,7 +57,7 @@ let coverColumnReady = false;
 async function ensureCoverImageColumn() {
   if (coverColumnReady) return;
   try {
-    await db.query('ALTER TABLE cards MODIFY cover_image TEXT NULL');
+    await db.query('ALTER TABLE cards MODIFY cover_image LONGTEXT NULL');
   } catch (_err) {
     // Ignore migration errors here to avoid breaking unrelated card operations.
   }

@@ -183,6 +183,9 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
       setCard((prev) => ({ ...prev, cover_image: data.cover_image, cover_color: data.cover_color }));
       setCoverImageInput('');
       onUpdate({ ...card, cover_image: data.cover_image, cover_color: data.cover_color });
+    } catch (err) {
+      const message = err?.response?.data?.error || err?.message || 'Failed to upload cover image';
+      alert(message);
     } finally {
       setUploadingCover(false);
       e.target.value = '';

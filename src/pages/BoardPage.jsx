@@ -205,6 +205,9 @@ export default function BoardPage() {
     try {
       const { data } = await getArchivedCards(boardId);
       setArchivedCards(data || []);
+    } catch (err) {
+      setArchivedCards([]);
+      alert(err?.response?.data?.error || 'Failed to load archived cards');
     } finally {
       setArchivedLoading(false);
     }
