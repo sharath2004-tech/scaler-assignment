@@ -126,7 +126,7 @@ npm run seed
 npm run dev
 ```
 
-The backend will run on **http://localhost:5000**
+The backend will run on **https://scaler-assignment-x4b7.onrender.com**
 
 ---
 
@@ -140,7 +140,7 @@ npm install
 npm run dev
 ```
 
-The frontend will run on **http://localhost:5173**
+The frontend will run on **https://scaler-assignment-gamma.vercel.app**
 
 ---
 
