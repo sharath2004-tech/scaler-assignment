@@ -3,6 +3,7 @@ import {
     DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { isValid } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createList, getBoard, getLabels, getMembers, reorderCards, reorderLists } from '../api';
@@ -12,6 +13,14 @@ import CardModal from '../components/CardModal';
 import Navbar from '../components/Navbar';
 import SearchBar from '../components/SearchBar';
 import styles from './BoardPage.module.css';
+
+function parseDueDate(value) {
+  if (!value) return null;
+  const asText = String(value).trim();
+  if (!asText || asText === '0000-00-00') return null;
+  const parsed = new Date(`${asText}T00:00:00`);
+  return isValid(parsed) ? parsed : null;
+}
 
 const DROP_ANIMATION = {
   sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }),
@@ -181,7 +190,7 @@ export default function BoardPage() {
       if (filterMember && !card.member_ids?.includes(filterMember)) return false;
       if (filterDue) {
         const today = new Date(); today.setHours(0, 0, 0, 0);
-        const due = card.due_date ? new Date(card.due_date) : null;
+        const due = parseDueDate(card.due_date);
         if (!due) return false;
         if (filterDue === 'overdue' && due >= today) return false;
         if (filterDue === 'today' && due.toDateString() !== today.toDateString()) return false;

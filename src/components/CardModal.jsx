@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import {
     addChecklist,
@@ -16,6 +16,19 @@ import {
     updateChecklistItem,
 } from '../api';
 import styles from './CardModal.module.css';
+
+function parseDateSafe(value, useMidnight = false) {
+  if (!value) return null;
+  const asText = String(value).trim();
+  if (!asText || asText === '0000-00-00') return null;
+  const parsed = new Date(useMidnight ? `${asText}T00:00:00` : asText);
+  return isValid(parsed) ? parsed : null;
+}
+
+function formatDateSafe(value, pattern, useMidnight = false) {
+  const parsed = parseDateSafe(value, useMidnight);
+  return parsed ? format(parsed, pattern) : '';
+}
 
 export default function CardModal({ cardId, allLabels, allMembers, onClose, onUpdate, onDelete }) {
   const [card, setCard] = useState(null);
@@ -336,7 +349,7 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
                   </div>
                   <div className={styles.commentContent}>
                     <span className={styles.commenterName}>{comment.member_name || 'Unknown'}</span>
-                    <span className={styles.commentTime}>{format(new Date(comment.created_at), 'MMM d, yyyy')}</span>
+                    <span className={styles.commentTime}>{formatDateSafe(comment.created_at, 'MMM d, yyyy')}</span>
                     <p className={styles.commentText}>{comment.text}</p>
                   </div>
                 </div>
@@ -405,8 +418,8 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
             {/* Due Date */}
             <div className={styles.sideSection}>
               <div className={styles.sideSectionTitle}>Due Date</div>
-              {card.due_date && (
-                <div className={styles.dueDateDisplay}>{format(new Date(card.due_date + 'T00:00:00'), 'MMM d, yyyy')}</div>
+              {parseDateSafe(card.due_date, true) && (
+                <div className={styles.dueDateDisplay}>{formatDateSafe(card.due_date, 'MMM d, yyyy', true)}</div>
               )}
               <button className={styles.sideBtn} onClick={() => setShowDatePicker((v) => !v)}>
                 {card.due_date ? 'Change' : '+ Due date'}

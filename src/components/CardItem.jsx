@@ -1,7 +1,15 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { format, isPast, isToday } from 'date-fns';
+import { format, isPast, isToday, isValid } from 'date-fns';
 import styles from './CardItem.module.css';
+
+function parseDueDate(value) {
+  if (!value) return null;
+  const asText = String(value).trim();
+  if (!asText || asText === '0000-00-00') return null;
+  const parsed = new Date(`${asText}T00:00:00`);
+  return isValid(parsed) ? parsed : null;
+}
 
 export default function CardItem({ card, allLabels, allMembers, listId, onClick, isDragging }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({
@@ -18,7 +26,7 @@ export default function CardItem({ card, allLabels, allMembers, listId, onClick,
   const cardLabels = allLabels.filter((l) => card.label_ids?.includes(l.id));
   const cardMembers = allMembers.filter((m) => card.member_ids?.includes(m.id));
 
-  const dueDate = card.due_date ? new Date(card.due_date + 'T00:00:00') : null;
+  const dueDate = parseDueDate(card.due_date);
   const isOverdue = dueDate && !card.archived && isPast(dueDate) && !isToday(dueDate);
   const isDueToday = dueDate && isToday(dueDate);
 
