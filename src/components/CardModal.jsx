@@ -21,8 +21,18 @@ function parseDateSafe(value, useMidnight = false) {
   if (!value) return null;
   const asText = String(value).trim();
   if (!asText || asText === '0000-00-00') return null;
-  const parsed = new Date(useMidnight ? `${asText}T00:00:00` : asText);
+
+  // Normalize MySQL-style values that may come as either YYYY-MM-DD or full datetime string
+  const datePart = asText.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || asText;
+  const source = useMidnight ? `${datePart}T00:00:00` : asText;
+  const parsed = new Date(source);
   return isValid(parsed) ? parsed : null;
+}
+
+function toDateInputValue(value) {
+  const asText = String(value || '').trim();
+  const datePart = asText.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  return datePart || '';
 }
 
 function formatDateSafe(value, pattern, useMidnight = false) {
@@ -428,7 +438,7 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
                 <div className={styles.datePicker}>
                   <input
                     type="date"
-                    defaultValue={card.due_date || ''}
+                    defaultValue={toDateInputValue(card.due_date)}
                     onChange={(e) => saveDueDate(e.target.value)}
                     style={{ colorScheme: 'dark' }}
                   />

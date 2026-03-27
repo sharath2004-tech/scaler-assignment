@@ -7,7 +7,10 @@ function parseDueDate(value) {
   if (!value) return null;
   const asText = String(value).trim();
   if (!asText || asText === '0000-00-00') return null;
-  const parsed = new Date(`${asText}T00:00:00`);
+
+  // Support both YYYY-MM-DD and full datetime values from backend
+  const datePart = asText.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  const parsed = new Date(`${datePart || asText}T00:00:00`);
   return isValid(parsed) ? parsed : null;
 }
 
