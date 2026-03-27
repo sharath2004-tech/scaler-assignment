@@ -1,0 +1,70 @@
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  color: #8C9BAB;
+  font-size: 13px;
+  border-radius: 0 0 12px 12px;
+  transition: background 0.15s, color 0.15s;
+  text-align: left;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #B6C2CF;
+}
+
+.form {
+  padding: 4px 8px 8px;
+}
+
+.textarea {
+  resize: none;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #1D2125;
+  border: 1px solid #0052CC;
+  color: #B6C2CF;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.3);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.submit {
+  padding: 6px 14px;
+  background: #0052CC;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.submit:hover:not(:disabled) {
+  background: #0065FF;
+}
+
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel {
+  padding: 4px 8px;
+  color: #B6C2CF;
+  font-size: 20px;
+  border-radius: 4px;
+}
+
+.cancel:hover {
+  background: #3D4B5C;
+  color: #fff;
+}
