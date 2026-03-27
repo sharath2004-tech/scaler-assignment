@@ -3,6 +3,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  z-index: 40;
 }
 
 .searchWrap {
@@ -88,7 +89,7 @@
   background: #282E33;
   border: 1px solid #3D4B5C;
   border-radius: 8px;
-  z-index: 200;
+  z-index: 999;
   min-width: 220px;
   max-height: 400px;
   overflow-y: auto;

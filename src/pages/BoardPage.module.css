@@ -13,6 +13,8 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 30;
 }
 
 .listsContainer {
@@ -23,6 +25,8 @@
   padding: 8px 16px 16px;
   gap: 12px;
   align-items: flex-start;
+  position: relative;
+  z-index: 1;
 }
 
 .addListBtn {
