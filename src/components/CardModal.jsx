@@ -158,14 +158,42 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
     setUploadingCover(true);
     try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Preferred path: dedicated cover-upload endpoint
       const { data } = await uploadCoverImage(cardId, formData);
       setCard((prev) => ({ ...prev, cover_image: data.cover_image, cover_color: data.cover_color }));
       setCoverImageInput(data.cover_image || '');
       onUpdate({ ...card, cover_image: data.cover_image, cover_color: data.cover_color });
+    } catch (err) {
+      // Backward-compatible fallback if backend isn't redeployed with /cover/upload yet
+      if (err?.response?.status === 404) {
+        const fallbackData = new FormData();
+        fallbackData.append('file', file);
+        const { data: attachment } = await uploadAttachment(cardId, fallbackData);
+        const { data: updated } = await updateCard(cardId, {
+          cover_image: attachment.file_url,
+          cover_color: null,
+        });
+
+        setCard((prev) => ({
+          ...prev,
+          cover_image: updated.cover_image,
+          cover_color: updated.cover_color,
+          attachments: [attachment, ...(prev.attachments || [])],
+        }));
+        setCoverImageInput(updated.cover_image || '');
+        onUpdate({
+          ...card,
+          cover_image: updated.cover_image,
+          cover_color: updated.cover_color,
+        });
+      } else {
+        throw err;
+      }
     } finally {
       setUploadingCover(false);
       e.target.value = '';
