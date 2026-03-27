@@ -1,6 +1,6 @@
 import {
     closestCorners, defaultDropAnimationSideEffects,
-    DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+    DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { format, isValid } from 'date-fns';
@@ -52,7 +52,8 @@ export default function BoardPage() {
   const [filterDue, setFilterDue] = useState(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 6 } })
   );
 
   const loadBoard = useCallback(() => {

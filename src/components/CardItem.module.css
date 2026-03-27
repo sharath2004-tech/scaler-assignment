@@ -3,6 +3,9 @@
   border-radius: 8px;
   padding: 8px 10px;
   cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: background 0.15s, box-shadow 0.15s;
   border: 1px solid transparent;
