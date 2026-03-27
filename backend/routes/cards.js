@@ -21,6 +21,21 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+function toUploadsFilePath(fileUrl) {
+  if (!fileUrl) return null;
+  try {
+    const parsed = new URL(fileUrl);
+    if (parsed.pathname.startsWith('/uploads/')) {
+      return path.join(uploadsDir, parsed.pathname.replace('/uploads/', ''));
+    }
+  } catch (_err) {
+    if (fileUrl.startsWith('/uploads/')) {
+      return path.join(uploadsDir, fileUrl.replace('/uploads/', ''));
+    }
+  }
+  return null;
+}
+
 let attachmentsTableReady = false;
 async function ensureAttachmentsTable() {
   if (attachmentsTableReady) return;
@@ -310,6 +325,24 @@ router.post('/:id/attachments/upload', upload.single('file'), async (req, res) =
   }
 });
 
+// POST upload cover image from local file
+router.post('/:id/cover/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'file is required' });
+
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.get('host');
+    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+
+    await db.query('UPDATE cards SET cover_image = ?, cover_color = NULL WHERE id = ?', [fileUrl, req.params.id]);
+    const [[card]] = await db.query('SELECT id, cover_image, cover_color FROM cards WHERE id = ?', [req.params.id]);
+
+    res.json(card);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // DELETE attachment
 router.delete('/:id/attachments/:attachmentId', async (req, res) => {
   try {
@@ -320,11 +353,9 @@ router.delete('/:id/attachments/:attachmentId', async (req, res) => {
     );
     if (!attachment) return res.status(404).json({ error: 'Attachment not found' });
 
-    if (attachment.file_url?.startsWith('/uploads/')) {
-      const filePath = path.join(uploadsDir, attachment.file_url.replace('/uploads/', ''));
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+    const filePath = toUploadsFilePath(attachment.file_url);
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
     }
 
     await db.query('DELETE FROM card_attachments WHERE id = ?', [req.params.attachmentId]);

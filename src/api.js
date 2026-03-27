@@ -52,6 +52,9 @@ export const uploadAttachment = (cardId, formData) => API.post(`/cards/${cardId}
   headers: { 'Content-Type': 'multipart/form-data' },
 });
 export const deleteAttachment = (cardId, attachmentId) => API.delete(`/cards/${cardId}/attachments/${attachmentId}`);
+export const uploadCoverImage = (cardId, formData) => API.post(`/cards/${cardId}/cover/upload`, formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
 
 // Members & Labels
 export const getMembers = () => API.get('/members');

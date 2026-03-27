@@ -17,6 +17,7 @@ import {
     updateCard,
     updateChecklistItem,
     uploadAttachment,
+    uploadCoverImage,
 } from '../api';
 import styles from './CardModal.module.css';
 
@@ -68,6 +69,7 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
   const [commentText, setCommentText] = useState('');
   const [coverImageInput, setCoverImageInput] = useState('');
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const overlayRef = useRef(null);
 
   // Default logged-in user
@@ -150,6 +152,24 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
       ...prev,
       attachments: (prev.attachments || []).filter((a) => a.id !== attachmentId),
     }));
+  };
+
+  const handleCoverFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    setUploadingCover(true);
+    try {
+      const { data } = await uploadCoverImage(cardId, formData);
+      setCard((prev) => ({ ...prev, cover_image: data.cover_image, cover_color: data.cover_color }));
+      setCoverImageInput(data.cover_image || '');
+      onUpdate({ ...card, cover_image: data.cover_image, cover_color: data.cover_color });
+    } finally {
+      setUploadingCover(false);
+      e.target.value = '';
+    }
   };
 
   const toggleLabel = async (label) => {
@@ -413,7 +433,9 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
                     <a href={resolveMediaUrl(a.file_url)} target="_blank" rel="noreferrer" className={styles.attachmentLink}>
                       {a.file_name}
                     </a>
-                    <button className={styles.deleteItemBtn} onClick={() => handleAttachmentDelete(a.id)}>×</button>
+                    <button className={styles.attachmentDeleteBtn} onClick={() => handleAttachmentDelete(a.id)}>
+                      Delete
+                    </button>
                   </div>
                 ))}
                 {(!card.attachments || card.attachments.length === 0) && (
@@ -569,6 +591,10 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
               <button className={styles.sideBtn} onClick={applyCoverImage} disabled={!coverImageInput.trim()}>
                 Set image
               </button>
+              <label className={styles.uploadBtn}>
+                {uploadingCover ? 'Uploading...' : '+ Upload local image'}
+                <input type="file" accept="image/*" onChange={handleCoverFileUpload} disabled={uploadingCover} />
+              </label>
               {(card.cover_color || card.cover_image) && (
                 <button className={styles.removeDate} onClick={removeCover}>Remove cover</button>
               )}
