@@ -6,7 +6,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { isValid } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createList, getBoard, getLabels, getMembers, reorderCards, reorderLists } from '../api';
+import { createList, getBoard, getLabels, getMembers, reorderCards, reorderLists, updateBoard } from '../api';
 import BoardList from '../components/BoardList';
 import CardItem from '../components/CardItem';
 import CardModal from '../components/CardModal';
@@ -29,6 +29,8 @@ const DROP_ANIMATION = {
   sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }),
 };
 
+const BOARD_BACKGROUNDS = ['#0052CC', '#00875A', '#FF5630', '#6554C0', '#FF8B00', '#DE350B', '#00B8D9', '#36B37E'];
+
 export default function BoardPage() {
   const { boardId } = useParams();
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ export default function BoardPage() {
   const [activeList, setActiveList] = useState(null);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showBgPicker, setShowBgPicker] = useState(false);
   const [filterLabel, setFilterLabel] = useState(null);
   const [filterMember, setFilterMember] = useState(null);
   const [filterDue, setFilterDue] = useState(null);
@@ -187,6 +190,12 @@ export default function BoardPage() {
     setLists((prev) => prev.filter((l) => l.id !== listId));
   };
 
+  const handleBackgroundChange = async (background) => {
+    const { data } = await updateBoard(boardId, { background });
+    setBoard((prev) => ({ ...prev, background: data.background }));
+    setShowBgPicker(false);
+  };
+
   const filteredLists = lists.map((list) => ({
     ...list,
     cards: (list.cards || []).filter((card) => {
@@ -236,6 +245,23 @@ export default function BoardPage() {
           onFilterMember={setFilterMember}
           onFilterDue={setFilterDue}
         />
+        <div className={styles.bgWrap}>
+          <button className={styles.bgBtn} onClick={() => setShowBgPicker((v) => !v)}>
+            Background
+          </button>
+          {showBgPicker && (
+            <div className={styles.bgPalette}>
+              {BOARD_BACKGROUNDS.map((bg) => (
+                <button
+                  key={bg}
+                  className={`${styles.bgSwatch} ${board?.background === bg ? styles.bgSwatchActive : ''}`}
+                  style={{ background: bg }}
+                  onClick={() => handleBackgroundChange(bg)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <DndContext

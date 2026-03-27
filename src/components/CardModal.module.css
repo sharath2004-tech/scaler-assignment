@@ -376,6 +376,64 @@
   word-break: break-word;
 }
 
+.attachmentsBox {
+  margin-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uploadBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 6px 10px;
+  background: #394049;
+  color: #B6C2CF;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.uploadBtn:hover {
+  background: #4D5969;
+  color: #fff;
+}
+
+.uploadBtn input {
+  display: none;
+}
+
+.attachmentItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2C333A;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.attachmentLink {
+  color: #79B8FF;
+  font-size: 13px;
+  text-decoration: none;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentLink:hover {
+  text-decoration: underline;
+}
+
+.emptyHint {
+  font-size: 12px;
+  color: #8C9BAB;
+}
+
 /* Sidebar */
 .sidebar {
   width: 180px;
@@ -512,6 +570,30 @@
   gap: 6px;
 }
 
+.coverColorGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.coverColor {
+  width: 100%;
+  height: 24px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+}
+
+.coverColorActive {
+  border-color: #fff;
+}
+
+.coverInput {
+  margin-top: 8px;
+  font-size: 12px;
+  width: 100%;
+}
+
 .datePicker input[type="date"] {
   font-size: 13px;
   padding: 6px 8px;
@@ -557,5 +639,16 @@
   }
   .sideSection {
     min-width: 140px;
+  }
+
+  .attachmentsBox,
+  .descDisplay,
+  .descInput,
+  .inlineActions,
+  .progressRow,
+  .checkItem,
+  .addItemForm {
+    margin-left: 0;
+    width: 100%;
   }
 }

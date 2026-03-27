@@ -15,6 +15,7 @@ dist-ssr
 # Env files (never commit real credentials)
 .env
 backend/.env
+backend/uploads/
 !.env.example
 !backend/.env.example
 

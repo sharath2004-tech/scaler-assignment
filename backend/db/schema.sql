@@ -106,3 +106,14 @@ CREATE TABLE IF NOT EXISTS comments (
   FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE,
   FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE SET NULL
 );
+
+-- Card Attachments
+CREATE TABLE IF NOT EXISTS card_attachments (
+  id VARCHAR(36) PRIMARY KEY,
+  card_id VARCHAR(36) NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_url TEXT NOT NULL,
+  file_size INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
+);

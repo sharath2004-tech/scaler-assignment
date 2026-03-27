@@ -60,3 +60,18 @@
   font-weight: 700;
   cursor: default;
 }
+
+@media (max-width: 768px) {
+  .nav {
+    padding: 0 10px;
+  }
+
+  .logo span {
+    display: none;
+  }
+
+  .sep,
+  .boardName {
+    display: none;
+  }
+}

@@ -31,7 +31,7 @@ router.get('/:id', async (req, res) => {
           GROUP_CONCAT(DISTINCT cm.member_id) AS member_ids
          FROM cards c
          LEFT JOIN card_labels cl ON c.id = cl.card_id
-         LEFT JOIN card_members cm ON c.id = cm.member_id
+           LEFT JOIN card_members cm ON c.id = cm.card_id
          WHERE c.list_id = ? AND c.archived = FALSE
          GROUP BY c.id
          ORDER BY c.position ASC`,

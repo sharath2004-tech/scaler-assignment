@@ -9,13 +9,18 @@ import {
     deleteCard,
     deleteChecklist,
     deleteChecklistItem,
+    deleteAttachment,
     getCard,
     removeLabelFromCard,
     removeMemberFromCard,
+    uploadAttachment,
     updateCard,
     updateChecklistItem,
+    API_ORIGIN,
 } from '../api';
 import styles from './CardModal.module.css';
+
+  const COVER_COLORS = ['#0052CC', '#00875A', '#FF5630', '#6554C0', '#FF8B00', '#00B8D9', '#36B37E', '#403294'];
 
 function parseDateSafe(value, useMidnight = false) {
   if (!value) return null;
@@ -40,6 +45,13 @@ function formatDateSafe(value, pattern, useMidnight = false) {
   return parsed ? format(parsed, pattern) : '';
 }
 
+function resolveMediaUrl(url) {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('/')) return `${API_ORIGIN}${url}`;
+  return url;
+}
+
 export default function CardModal({ cardId, allLabels, allMembers, onClose, onUpdate, onDelete }) {
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,6 +66,8 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
   const [showNewChecklist, setShowNewChecklist] = useState(false);
   const [newItemTexts, setNewItemTexts] = useState({});
   const [commentText, setCommentText] = useState('');
+  const [coverImageInput, setCoverImageInput] = useState('');
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const overlayRef = useRef(null);
 
   // Default logged-in user
@@ -65,6 +79,7 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
         setCard(r.data);
         setTitleVal(r.data.title);
         setDescVal(r.data.description || '');
+        setCoverImageInput(r.data.cover_image || '');
       })
       .finally(() => setLoading(false));
   }, [cardId]);
@@ -90,6 +105,51 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
     const { data } = await updateCard(cardId, { due_date: date || null });
     setCard((prev) => ({ ...prev, due_date: data.due_date }));
     onUpdate({ ...card, due_date: data.due_date });
+  };
+
+  const applyCoverColor = async (color) => {
+    const { data } = await updateCard(cardId, { cover_color: color, cover_image: null });
+    setCard((prev) => ({ ...prev, cover_color: data.cover_color, cover_image: data.cover_image }));
+    setCoverImageInput('');
+    onUpdate({ ...card, cover_color: data.cover_color, cover_image: data.cover_image });
+  };
+
+  const applyCoverImage = async () => {
+    const url = coverImageInput.trim();
+    if (!url) return;
+    const { data } = await updateCard(cardId, { cover_image: url, cover_color: null });
+    setCard((prev) => ({ ...prev, cover_color: data.cover_color, cover_image: data.cover_image }));
+    onUpdate({ ...card, cover_color: data.cover_color, cover_image: data.cover_image });
+  };
+
+  const removeCover = async () => {
+    const { data } = await updateCard(cardId, { cover_image: null, cover_color: null });
+    setCard((prev) => ({ ...prev, cover_color: data.cover_color, cover_image: data.cover_image }));
+    setCoverImageInput('');
+    onUpdate({ ...card, cover_color: data.cover_color, cover_image: data.cover_image });
+  };
+
+  const handleAttachmentUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    setUploadingAttachment(true);
+    try {
+      const { data } = await uploadAttachment(cardId, formData);
+      setCard((prev) => ({ ...prev, attachments: [data, ...(prev.attachments || [])] }));
+    } finally {
+      setUploadingAttachment(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleAttachmentDelete = async (attachmentId) => {
+    await deleteAttachment(cardId, attachmentId);
+    setCard((prev) => ({
+      ...prev,
+      attachments: (prev.attachments || []).filter((a) => a.id !== attachmentId),
+    }));
   };
 
   const toggleLabel = async (label) => {
@@ -201,7 +261,18 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
     <div className="overlay" ref={overlayRef} onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Cover */}
-        {card.cover_color && <div className={styles.cover} style={{ background: card.cover_color }} />}
+        {(card.cover_image || card.cover_color) && (
+          <div
+            className={styles.cover}
+            style={card.cover_image
+              ? {
+                  backgroundImage: `url(${resolveMediaUrl(card.cover_image)})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }
+              : { background: card.cover_color }}
+          />
+        )}
 
         {/* Close */}
         <button className={styles.closeBtn} onClick={onClose}>×</button>
@@ -328,6 +399,32 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
                 <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" className={styles.sectionIcon}>
+                  <path d="M2 2h12v12H2zM4 4v8h8V4z" />
+                </svg>
+                <h3>Attachments</h3>
+              </div>
+              <div className={styles.attachmentsBox}>
+                <label className={styles.uploadBtn}>
+                  {uploadingAttachment ? 'Uploading...' : '+ Add attachment'}
+                  <input type="file" onChange={handleAttachmentUpload} disabled={uploadingAttachment} />
+                </label>
+                {(card.attachments || []).map((a) => (
+                  <div key={a.id} className={styles.attachmentItem}>
+                    <a href={resolveMediaUrl(a.file_url)} target="_blank" rel="noreferrer" className={styles.attachmentLink}>
+                      {a.file_name}
+                    </a>
+                    <button className={styles.deleteItemBtn} onClick={() => handleAttachmentDelete(a.id)}>×</button>
+                  </div>
+                ))}
+                {(!card.attachments || card.attachments.length === 0) && (
+                  <div className={styles.emptyHint}>No attachments yet.</div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" className={styles.sectionIcon}>
                   <path d="M14 1H2a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v3l4-3h5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z" />
                 </svg>
                 <h3>Activity</h3>
@@ -446,6 +543,34 @@ export default function CardModal({ cardId, allLabels, allMembers, onClose, onUp
                     <button className={styles.removeDate} onClick={() => saveDueDate(null)}>Remove date</button>
                   )}
                 </div>
+              )}
+            </div>
+
+            {/* Cover */}
+            <div className={styles.sideSection}>
+              <div className={styles.sideSectionTitle}>Cover</div>
+              <div className={styles.coverColorGrid}>
+                {COVER_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    className={`${styles.coverColor} ${card.cover_color === color ? styles.coverColorActive : ''}`}
+                    style={{ background: color }}
+                    onClick={() => applyCoverColor(color)}
+                    title="Set cover color"
+                  />
+                ))}
+              </div>
+              <input
+                className={styles.coverInput}
+                placeholder="Image URL"
+                value={coverImageInput}
+                onChange={(e) => setCoverImageInput(e.target.value)}
+              />
+              <button className={styles.sideBtn} onClick={applyCoverImage} disabled={!coverImageInput.trim()}>
+                Set image
+              </button>
+              {(card.cover_color || card.cover_image) && (
+                <button className={styles.removeDate} onClick={removeCover}>Remove cover</button>
               )}
             </div>
 

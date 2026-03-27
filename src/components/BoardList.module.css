@@ -107,3 +107,10 @@
   flex-direction: column;
   gap: 8px;
 }
+
+@media (max-width: 768px) {
+  .list {
+    width: min(272px, calc(100vw - 28px));
+    max-height: calc(100vh - 170px);
+  }
+}

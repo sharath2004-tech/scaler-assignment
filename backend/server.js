@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config({ path: path.resolve(__dirname, '.env'), override: true });
 const express = require('express');
 const cors = require('cors');
@@ -9,6 +10,10 @@ const cardsRouter = require('./routes/cards');
 const membersRouter = require('./routes/members');
 
 const app = express();
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
@@ -43,6 +48,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
+app.use('/uploads', express.static(uploadsDir));
 
 app.use('/api/boards', boardsRouter);
 app.use('/api/lists', listsRouter);

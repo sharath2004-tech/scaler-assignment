@@ -1,8 +1,12 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: API_BASE_URL,
 });
+
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
 // Boards
 export const getBoards = () => API.get('/boards');
@@ -42,6 +46,12 @@ export const deleteChecklistItem = (cardId, checklistId, itemId) => API.delete(`
 
 // Comments
 export const addComment = (cardId, data) => API.post(`/cards/${cardId}/comments`, data);
+
+// Attachments
+export const uploadAttachment = (cardId, formData) => API.post(`/cards/${cardId}/attachments/upload`, formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
+export const deleteAttachment = (cardId, attachmentId) => API.delete(`/cards/${cardId}/attachments/${attachmentId}`);
 
 // Members & Labels
 export const getMembers = () => API.get('/members');

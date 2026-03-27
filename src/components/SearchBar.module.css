@@ -160,3 +160,23 @@
   justify-content: center;
   flex-shrink: 0;
 }
+
+@media (max-width: 768px) {
+  .wrapper {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .searchWrap {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dropdown {
+    left: 0;
+    right: 0;
+    min-width: 0;
+    width: 100%;
+    max-height: 50vh;
+  }
+}

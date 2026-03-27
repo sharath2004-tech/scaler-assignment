@@ -42,6 +42,7 @@ async function seed() {
   // Clear existing data
   await conn.query(`
     SET FOREIGN_KEY_CHECKS = 0;
+    TRUNCATE TABLE card_attachments;
     TRUNCATE TABLE comments;
     TRUNCATE TABLE checklist_items;
     TRUNCATE TABLE checklists;

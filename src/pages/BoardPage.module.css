@@ -17,6 +17,48 @@
   z-index: 30;
 }
 
+.bgWrap {
+  position: relative;
+}
+
+.bgBtn {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bgBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.bgPalette {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #282E33;
+  border: 1px solid #3D4B5C;
+  border-radius: 8px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  z-index: 60;
+}
+
+.bgSwatch {
+  width: 28px;
+  height: 24px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+}
+
+.bgSwatchActive {
+  border-color: #fff;
+}
+
 .listsContainer {
   display: flex;
   flex: 1;
@@ -109,4 +151,24 @@
   font-size: 14px;
   font-weight: 600;
   padding: 4px 6px;
+}
+
+@media (max-width: 1024px) {
+  .listsContainer {
+    padding: 8px 12px 12px;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .boardHeader {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .addListBtn,
+  .addListForm,
+  .listOverlay {
+    width: min(272px, calc(100vw - 28px));
+  }
 }

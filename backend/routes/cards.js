@@ -1,11 +1,47 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 const db = require('../db/db');
 const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
+
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '');
+    cb(null, `${Date.now()}-${uuidv4()}${ext}`);
+  },
+});
+
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+
+let attachmentsTableReady = false;
+async function ensureAttachmentsTable() {
+  if (attachmentsTableReady) return;
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS card_attachments (
+      id VARCHAR(36) PRIMARY KEY,
+      card_id VARCHAR(36) NOT NULL,
+      file_name VARCHAR(255) NOT NULL,
+      file_url TEXT NOT NULL,
+      file_size INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
+    )
+  `);
+  attachmentsTableReady = true;
+}
 
 // GET full card details
 router.get('/:id', async (req, res) => {
   try {
+    await ensureAttachmentsTable();
     const [[card]] = await db.query('SELECT * FROM cards WHERE id = ?', [req.params.id]);
     if (!card) return res.status(404).json({ error: 'Card not found' });
 
@@ -35,7 +71,12 @@ router.get('/:id', async (req, res) => {
       [req.params.id]
     );
 
-    res.json({ ...card, labels, members, checklists, comments });
+    const [attachments] = await db.query(
+      'SELECT * FROM card_attachments WHERE card_id = ? ORDER BY created_at DESC',
+      [req.params.id]
+    );
+
+    res.json({ ...card, labels, members, checklists, comments, attachments });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -241,6 +282,53 @@ router.post('/:id/comments', async (req, res) => {
       [commentId]
     );
     res.status(201).json(comment);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST upload attachment
+router.post('/:id/attachments/upload', upload.single('file'), async (req, res) => {
+  try {
+    await ensureAttachmentsTable();
+    if (!req.file) return res.status(400).json({ error: 'file is required' });
+
+    const attachmentId = uuidv4();
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.get('host');
+    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+
+    await db.query(
+      'INSERT INTO card_attachments (id, card_id, file_name, file_url, file_size) VALUES (?, ?, ?, ?, ?)',
+      [attachmentId, req.params.id, req.file.originalname, fileUrl, req.file.size || 0]
+    );
+
+    const [[attachment]] = await db.query('SELECT * FROM card_attachments WHERE id = ?', [attachmentId]);
+    res.status(201).json(attachment);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE attachment
+router.delete('/:id/attachments/:attachmentId', async (req, res) => {
+  try {
+    await ensureAttachmentsTable();
+    const [[attachment]] = await db.query(
+      'SELECT * FROM card_attachments WHERE id = ? AND card_id = ?',
+      [req.params.attachmentId, req.params.id]
+    );
+    if (!attachment) return res.status(404).json({ error: 'Attachment not found' });
+
+    if (attachment.file_url?.startsWith('/uploads/')) {
+      const filePath = path.join(uploadsDir, attachment.file_url.replace('/uploads/', ''));
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    await db.query('DELETE FROM card_attachments WHERE id = ?', [req.params.attachmentId]);
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
