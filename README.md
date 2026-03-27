@@ -27,14 +27,19 @@ A full-stack Trello-like project management application built with React.js + Vi
   - Add checklists with items (mark complete/incomplete, delete items)
   - Assign/remove members
   - Add comments/activity log
-  - Cover color display
-- **Filters** – Filter cards by label, member, or due date (overdue / today / this week)
+  - Cover color + cover image (URL and local upload)
+  - Attachments upload/list/delete
+  - Move card to another list (from modal)
+  - Copy card (duplicates key metadata)
+- **Search & Filters** – Search cards by title and filter by label/member/due date (overdue / today / this week)
+- **Archived Cards View** – List archived cards per board and restore them
 
 ### Bonus
 - Responsive design (mobile, tablet, desktop)
 - Multiple boards support
 - Activity/comments on cards
 - Board background customization
+- Card covers and file attachments
 - Sample data seeded into the DB
 
 ---
@@ -55,6 +60,7 @@ A full-stack Trello-like project management application built with React.js + Vi
 | `checklists`      | Checklists belonging to a card                   |
 | `checklist_items` | Items within a checklist                         |
 | `comments`        | Comments/activity log entries on cards           |
+| `card_attachments`| Uploaded files linked to cards                   |
 
 Schema file: `backend/db/schema.sql`
 
@@ -165,6 +171,10 @@ PORT=5000
 | PATCH  | /api/cards/:id/checklists/:clId/items/:itemId     | Toggle/edit checklist item    |
 | DELETE | /api/cards/:id/checklists/:clId/items/:itemId     | Delete checklist item         |
 | POST   | /api/cards/:id/comments                           | Add comment                   |
+| GET    | /api/cards/archived/:boardId                      | Get archived cards for board  |
+| POST   | /api/cards/:id/attachments/upload                 | Upload attachment             |
+| DELETE | /api/cards/:id/attachments/:attachmentId          | Delete attachment             |
+| POST   | /api/cards/:id/cover/upload                       | Upload cover image file       |
 | GET    | /api/members                                      | Get all members               |
 | GET    | /api/members/labels                               | Get all labels                |
 
@@ -175,7 +185,7 @@ PORT=5000
 1. **No authentication** – A default user "Alice Johnson" is assumed to be logged in (first member in DB).
 2. **Sample data** includes 2 boards, multiple lists, cards, labels, checklists, and comments (seeded via `npm run seed`).
 3. **Sample members**: Alice Johnson, Bob Smith, Carol White, David Lee, Eva Martinez.
-4. **Drag and drop** uses [@dnd-kit](https://dndkit.com) with pointer sensor (5px activation distance to prevent accidental drags on click).
+4. **Drag and drop** uses [@dnd-kit](https://dndkit.com) with mouse + touch sensors (distance activation on desktop, delay+tolerance on mobile).
 5. **Board background** uses a solid color; it can be extended to support image URLs.
 6. **Archived cards** are hidden from the board view but not deleted.
 7. All IDs use UUID v4 for better portability.
