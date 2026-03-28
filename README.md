@@ -8,6 +8,7 @@ A full-stack Trello-like project management application built with React.js + Vi
 
 - **Frontend (Vercel):** https://scaler-assignment-gamma.vercel.app/
 - **Backend API (Render):** https://scaler-assignment-x4b7.onrender.com
+- **Database (Railway):** MySQL is hosted on Railway
 - **API example endpoint:** https://scaler-assignment-x4b7.onrender.com/api/boards
 
 > Note: The backend root (`/`) may return 404. Use `/api/*` routes for API calls.
@@ -26,7 +27,7 @@ VITE_API_URL=https://scaler-assignment-x4b7.onrender.com/api
 |----------|-----------------------------------|
 | Frontend | React 19, Vite 8, @dnd-kit, date-fns, react-router-dom |
 | Backend  | Node.js, Express.js 5             |
-| Database | MySQL 8+                          |
+| Database | MySQL 8+ (Railway hosted)         |
 | HTTP     | Axios                             |
 
 ---
