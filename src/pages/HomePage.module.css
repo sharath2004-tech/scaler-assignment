@@ -15,6 +15,40 @@
   margin-bottom: 24px;
 }
 
+.searchWrap {
+  margin-top: 12px;
+  position: relative;
+  max-width: 320px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8C9BAB;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  border: 1px solid #44546A;
+  border-radius: 8px;
+  background: #22272B;
+  color: #B6C2CF;
+  font-size: 14px;
+  padding: 9px 12px 9px 32px;
+}
+
+.searchInput::placeholder {
+  color: #8C9BAB;
+}
+
+.searchInput:focus {
+  border-color: #579DFF;
+  box-shadow: 0 0 0 2px rgba(87, 157, 255, 0.2);
+}
+
 .title {
   color: #B6C2CF;
   font-size: 16px;
@@ -33,6 +67,16 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(194px, 1fr));
   gap: 16px;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  border: 1px dashed #44546A;
+  border-radius: 8px;
+  padding: 16px;
+  color: #8C9BAB;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 14px;
 }
 
 .boardCard {
@@ -195,6 +239,11 @@
   .content {
     padding: 20px 16px;
   }
+
+  .searchWrap {
+    max-width: 100%;
+  }
+
   .grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
