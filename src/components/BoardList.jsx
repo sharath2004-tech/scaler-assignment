@@ -2,6 +2,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { useState } from 'react';
 import { deleteList, updateList } from '../api';
+import { useNotification } from '../context/NotificationContext';
 import AddCardButton from './AddCardButton';
 import styles from './BoardList.module.css';
 import CardItem from './CardItem';
@@ -10,6 +11,7 @@ export default function BoardList({ list, allLabels, allMembers, onCardClick, on
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(list.title);
   const [showMenu, setShowMenu] = useState(false);
+  const { showConfirm } = useNotification();
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: list.id,
@@ -30,7 +32,8 @@ export default function BoardList({ list, allLabels, allMembers, onCardClick, on
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Delete list "${list.title}"? All cards will be removed.`)) return;
+    const confirmed = await showConfirm(`Delete list "${list.title}"? All cards will be removed.`);
+    if (!confirmed) return;
     await deleteList(list.id);
     onListDelete(list.id);
   };

@@ -12,6 +12,7 @@ import CardItem from '../components/CardItem';
 import CardModal from '../components/CardModal';
 import Navbar from '../components/Navbar';
 import SearchBar from '../components/SearchBar';
+import { useNotification } from '../context/NotificationContext';
 import styles from './BoardPage.module.css';
 
 function parseDueDate(value) {
@@ -34,6 +35,7 @@ const BOARD_BACKGROUNDS = ['#0052CC', '#00875A', '#FF5630', '#6554C0', '#FF8B00'
 export default function BoardPage() {
   const { boardId } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useNotification();
   const [board, setBoard] = useState(null);
   const [lists, setLists] = useState([]);
   const [allMembers, setAllMembers] = useState([]);
@@ -227,7 +229,7 @@ export default function BoardPage() {
       setArchivedCards(data || []);
     } catch (err) {
       setArchivedCards([]);
-      alert(err?.response?.data?.error || 'Failed to load archived cards');
+      showToast(err?.response?.data?.error || 'Failed to load archived cards', 'error');
     } finally {
       setArchivedLoading(false);
     }

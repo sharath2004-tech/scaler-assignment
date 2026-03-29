@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createBoard, deleteBoard, getBoards } from '../api';
 import Navbar from '../components/Navbar';
+import { useNotification } from '../context/NotificationContext';
 import styles from './HomePage.module.css';
 
 const BOARD_BACKGROUNDS = [
@@ -17,6 +18,7 @@ export default function HomePage() {
   const [newBg, setNewBg] = useState(BOARD_BACKGROUNDS[0]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { showConfirm } = useNotification();
 
   const filteredBoards = boards.filter((board) => {
     const q = searchQuery.trim().toLowerCase();
@@ -43,7 +45,8 @@ export default function HomePage() {
 
   const handleDelete = async (e, id) => {
     e.stopPropagation();
-    if (!confirm('Delete this board?')) return;
+    const confirmed = await showConfirm('Delete this board?');
+    if (!confirmed) return;
     await deleteBoard(id);
     setBoards((prev) => prev.filter((b) => b.id !== id));
   };

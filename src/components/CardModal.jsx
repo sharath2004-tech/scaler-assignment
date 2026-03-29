@@ -19,6 +19,7 @@ import {
     updateChecklistItem,
     uploadAttachment,
 } from '../api';
+import { useNotification } from '../context/NotificationContext';
 import styles from './CardModal.module.css';
 
   const COVER_COLORS = ['#0052CC', '#00875A', '#FF5630', '#6554C0', '#FF8B00', '#00B8D9', '#36B37E', '#403294'];
@@ -82,6 +83,7 @@ export default function CardModal({ cardId, allLabels, allMembers, allLists = []
   const [movingListId, setMovingListId] = useState('');
   const [copyingCard, setCopyingCard] = useState(false);
   const overlayRef = useRef(null);
+  const { showConfirm, showToast } = useNotification();
 
   // Default logged-in user
   const DEFAULT_MEMBER_ID = null; // will be set from members list
@@ -174,7 +176,7 @@ export default function CardModal({ cardId, allLabels, allMembers, allLists = []
 
     // Keep DB payloads reasonable for data-URL storage
     if (file.size > 350 * 1024) {
-      alert('Please select an image smaller than 350KB for cover upload.');
+      showToast('Please select an image smaller than 350KB for cover upload.', 'warning');
       e.target.value = '';
       return;
     }
@@ -191,7 +193,7 @@ export default function CardModal({ cardId, allLabels, allMembers, allLists = []
       onUpdate({ ...card, cover_image: data.cover_image, cover_color: data.cover_color });
     } catch (err) {
       const message = err?.response?.data?.error || err?.message || 'Failed to upload cover image';
-      alert(message);
+      showToast(message, 'error');
     } finally {
       setUploadingCover(false);
       e.target.value = '';
@@ -283,7 +285,8 @@ export default function CardModal({ cardId, allLabels, allMembers, allLists = []
   };
 
   const handleDelete = async () => {
-    if (!confirm('Delete this card?')) return;
+    const confirmed = await showConfirm('Delete this card?');
+    if (!confirmed) return;
     await deleteCard(cardId);
     onDelete(cardId);
   };
