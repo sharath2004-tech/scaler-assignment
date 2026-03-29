@@ -8,7 +8,10 @@
 }
 
 .cover {
-  height: 120px;
+  height: 250px;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
 }
 
 .closeBtn {

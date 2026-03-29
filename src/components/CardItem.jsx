@@ -50,8 +50,6 @@ export default function CardItem({ card, allLabels, allMembers, listId, onClick,
           style={card.cover_image
             ? {
                 backgroundImage: `url(${card.cover_image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
               }
             : { background: card.cover_color }}
         />

@@ -358,8 +358,6 @@ export default function CardModal({ cardId, allLabels, allMembers, allLists = []
             style={card.cover_image
               ? {
                   backgroundImage: `url(${resolveMediaUrl(card.cover_image)})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
                 }
               : { background: card.cover_color }}
           />

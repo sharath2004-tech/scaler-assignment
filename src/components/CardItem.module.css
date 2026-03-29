@@ -24,9 +24,12 @@
 }
 
 .cover {
-  height: 36px;
+  height: 160px;
   margin: -8px -10px 8px;
   border-radius: 8px 8px 0 0;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
 }
 
 .labels {
